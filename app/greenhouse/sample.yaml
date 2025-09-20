@@ -1,0 +1,30 @@
+sample:
+  description: Greenhouse Prototype
+  name: greenhouse
+tests:
+  sample.greenhouse:
+    integration_platforms:
+      - qemu_cortex_m3
+    harness: console
+    harness_config:
+      type: multi_line
+      ordered: true
+      regex:
+        - "Booting Zephyr OS"
+        - "-------------------------"
+        - "Greenhouse is starting."
+        - "Initialization done."
+        - "-------------------------"
+        - "GH main loop nr: 0"
+        - "GH DEBUG: State: Normal operation"
+        - "GH main loop nr: 1"
+        - "GH DEBUG: State: Sleeping"
+        - "GH main loop nr: 2"
+        - "GH DEBUG: State: Normal operation"
+        - "GH main loop nr: 3"
+        - "GH DEBUG: State: Sleeping"
+        - "GH main loop nr: 4"
+        - "GH DEBUG: State: Normal operation"
+        - "GH main loop nr: 5"
+        - "GH DEBUG: State: The device is in error state."
+        - "GH ERROR: Device reached max allowed number of cycles. Restarting"
