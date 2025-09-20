@@ -1,8 +1,9 @@
-// Greenhouse demo application for Seeeduino XIAO used for demonstrations 
+// Greenhouse demo application for Seeeduino XIAO used for demonstrations
 // Author: Lenka Koskova Triskova, lenka@koskova.cz
 // License: MIT
-#include "ArduinoLowPower.h"
 #include "./gh_definitions.h"
+
+#include <zephyr/kernel.h>
 
 #define USE_SEEDUINO 1
 
@@ -14,16 +15,16 @@
 #define GH_BAUD 9600
 #endif
 
-int gh_state=GH_STATE_INIT;
-int gh_err_code=GH_ERR_NOERR;
-int gh_debug=GH_DEBUG_ON;
+static int gh_state = GH_STATE_INIT;
+static int gh_err_code = GH_ERR_NOERR;
+static int gh_debug = GH_DEBUG_ON;
 
-int gh_loop_count = 0;
-int gh_restart = 0;
+static int gh_loop_count = 0;
+static int gh_restart = 0;
 
-
-int gh_process_error(){
-  String to_print="";
+static int gh_process_error()
+{
+  const char *to_print = "";
   int ret_code = 0;  
   //Returns 1 if restart is needed.
   switch(gh_err_code) {
@@ -49,85 +50,66 @@ int gh_process_error(){
       ret_code = 0;
       break;
   }
-  Serial.print(to_print);
+  printf(to_print);
   return ret_code;
-} 
+}
 
-void print_debug(String to_print) {
-  if (gh_debug == GH_DEBUG_ON) {
-    // Use %s as a placeholder for a string
-    String full_print = GH_DEBUG_STRING + to_print;
-    Serial.print(full_print);
+static void print_debug(const char *to_print)
+{
+  if (gh_debug == GH_DEBUG_ON)
+  {
+    printf("%s%s", GH_DEBUG_STRING, to_print);
   }
 }
 
-
-void gh_check_loop() {
-    Serial.printf("GH main loop nr: %d\n", gh_loop_count);
-    gh_loop_count++;
-    if (gh_loop_count > GH_MAX_LOOP) {
-      gh_state = GH_STATE_ERROR;
-      gh_err_code = GH_ERR_MAX_COUNT;
-    }
-
+static void gh_check_loop()
+{
+  printf("GH main loop nr: %d\n", gh_loop_count);
+  gh_loop_count++;
+  if (gh_loop_count > GH_MAX_LOOP)
+  {
+    gh_state = GH_STATE_ERROR;
+    gh_err_code = GH_ERR_MAX_COUNT;
+  }
 }
 
-void gh_do_init(){
-
+static void gh_do_init()
+{
 }
 
-void gh_do_normal_operation() {
+static void gh_do_normal_operation()
+{
   // Nothing yet, just enering the sleep:
   print_debug("State: Normal operation\n");
   gh_state = GH_STATE_SLEEP;
-
 }
 
-void gh_do_sleep() {
+static void gh_do_sleep()
+{
   // No real sleep yet, just delay and back to normal
   print_debug("State: Sleeping\n");
-  LowPower.sleep(GH_DELAY_SLEEP);
+  k_msleep(GH_DELAY_SLEEP);
   gh_state = GH_STATE_ON;
-
 }
 
-void gh_do_ui() {
+static void gh_do_ui()
+{
   print_debug("State: User interaction\n");
   //No UI yet, delay and back to normal operation:
-  delay(GH_DELAY_SHORT);
+  k_msleep(GH_DELAY_SHORT);
   gh_state=GH_STATE_ON;
 }
 
-void gh_do_closing() {
+static void gh_do_closing()
+{
   print_debug("State: The device is swiching off.\n");
         // Code to close what is open here:
-  delay(GH_DELAY_SHORT);
+  k_msleep(GH_DELAY_SHORT);
   NVIC_SystemReset();        //Reset device
 }
 
-void setup() {
-  //Serial line initialization:
-  if (gh_state == GH_STATE_INIT) {
-    
-  Serial.begin(GH_BAUD);
-  delay(GH_DELAY_SHORT);
-  Serial.print("-------------------------\n");
-  Serial.print("Greenhouse is starting.\n");
-  gh_do_init();
-  Serial.print("Initialization done.\n");
-  Serial.print("-------------------------\n");
-  
-  gh_state = GH_STATE_ON;
-  }
-    else {
-      gh_state = GH_STATE_ERROR;
-      gh_err_code = GH_ERR_NOINIT;      
-  }
-  
-}
-
-
-void loop() {
+static void loop()
+{
 
   while (true) { //Main while loop:
     gh_check_loop();
@@ -164,10 +146,31 @@ void loop() {
         print_debug("Unknown state - entering error\n");
         gh_state = GH_STATE_ERROR;
         gh_err_code = GH_ERR_UNKNOWN_STATE;
-        break;      
-      
-    }    
-    delay(GH_DELAY_LONG);
+        break;
+      }
+      k_msleep(GH_DELAY_LONG);
+  }
+}
+
+int main(void)
+{
+  // Serial line initialization:
+  if (gh_state == GH_STATE_INIT)
+  {
+
+    printf("-------------------------\n");
+    printf("Greenhouse is starting.\n");
+    gh_do_init();
+    printf("Initialization done.\n");
+    printf("-------------------------\n");
+
+    gh_state = GH_STATE_ON;
+  }
+  else
+  {
+    gh_state = GH_STATE_ERROR;
+    gh_err_code = GH_ERR_NOINIT;
   }
 
+  loop();
 }
