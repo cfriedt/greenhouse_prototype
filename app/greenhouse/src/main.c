@@ -20,7 +20,6 @@ static int gh_err_code = GH_ERR_NOERR;
 static int gh_debug = GH_DEBUG_ON;
 
 static int gh_loop_count = 0;
-static int gh_restart = 0;
 
 static int gh_process_error()
 {
@@ -50,7 +49,7 @@ static int gh_process_error()
       ret_code = 0;
       break;
   }
-  printf(to_print);
+  printf("%s", to_print);
   return ret_code;
 }
 
