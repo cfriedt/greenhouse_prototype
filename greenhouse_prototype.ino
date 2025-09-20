@@ -4,7 +4,15 @@
 #include "ArduinoLowPower.h"
 #include "./gh_definitions.h"
 
+#define USE_SEEDUINO 1
 
+#ifdef USE_SEEDUINO
+#define Serial Serial1
+#define GH_BAUD 115200
+#else
+#define Serial Serial
+#define GH_BAUD 9600
+#endif
 
 int gh_state=GH_STATE_INIT;
 int gh_err_code=GH_ERR_NOERR;
@@ -101,7 +109,7 @@ void setup() {
   //Serial line initialization:
   if (gh_state == GH_STATE_INIT) {
     
-  Serial.begin(9600);
+  Serial.begin(GH_BAUD);
   delay(GH_DELAY_SHORT);
   Serial.print("-------------------------\n");
   Serial.print("Greenhouse is starting.\n");
